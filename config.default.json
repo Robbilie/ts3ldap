@@ -1,0 +1,17 @@
+{
+	"sq": {
+		"username": 	"<yourServerQueryUsername>",
+		"password": 	"<yourServerQueryPassword>",
+		"useTicker": 	true // show ticker for corp/alli
+	},
+	"ldap": {
+		"keyid": 		"<yourEasKeyId>",
+		"secret": 		"<yourEasSecret>",
+		"filter": 		"(ts3uid=%uid)",
+		"path": 		"ou=Short,ou=Character,dc=eneticum" // remove ou=Short, fi you want full length names
+	},
+	"warning": {
+		"times": 		3, // times of warning pokes
+		"timeout": 		20000 // waiting time between warnings
+	}
+}
