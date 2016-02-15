@@ -144,13 +144,15 @@
 			} else {
 				clientTS.execute(`servergroupadd name=${ts.escapeString(name)}`, (res) => {
 					sgid = res.response[0].sgid;
-					if(config.sq.useTicker && name.length < 6 && name != "CEO")
-						clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_show_name_in_tree permvalue=1 permnegated=0 permskip=0`, (res) => {
-							console.log("new", sgid, res);
+					clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=b_group_is_permanent permvalue=0 permnegated=0 permskip=0`, (res) => {
+						if(config.sq.useTicker && name.length < 6 && name != "CEO")
+							clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_show_name_in_tree permvalue=1 permnegated=0 permskip=0`, (res) => {
+								console.log("new", sgid, res);
+								cb(sgid);
+							});
+						else
 							cb(sgid);
-						});
-					else
-						cb(sgid);
+					});
 				});
 			}
 		});
