@@ -16,6 +16,8 @@
 		clientTS.execute('use 1', function (element) { });
 
 		clientTS.execute('servernotifyregister event=server');
+
+		setInterval(() => clientTS.execute('serverinfo'), 5 * 60 * 1000);
 	});
 	
 	clientTS.on("notify", function (notification) {
@@ -27,7 +29,7 @@
 
 	clientTS.on("error", console.log);
 
-	clientTS.on("close", function () { });
+	clientTS.on("close", console.log);
 
 	function processClient (notif) {
 		console.log("process client", notif);
@@ -53,16 +55,16 @@
 				});
 				res.on("end", (result) => {
 					console.log('status: ' + result.status);
-					if(entries.length == 0) 
+					if(entries.length === 0) 
 						return warnUser({ type: "kickmsg", entry: entries[0], uid: uid, clid: clid, name: name, msg: "Not registered or not allowed to enter. Register here: https://service.eneticum.de/" });
 					if(entries.length > 1) 
 						return warnUser({ type: "kickmsg", entry: entries[0], uid: uid, clid: clid, name: name, msg: "You can only assign your TS3UID to one character, please remove it from any others." });
-					if(name.indexOf(entries[0].characterName) != 0) 
+					if(name.indexOf(entries[0].characterName) !== 0) 
 						return warnUser({ type: "name", notif: notif, entry: entries[0], uid: uid, clid: clid, name: name, warning: 0 });
 					setupUser(notif, entries[0]);
 				});
 			});
-		})
+		});
 	}
 
 	function warnUser (data) {
@@ -70,7 +72,7 @@
 			case "name":
 				clientTS.execute(`clientinfo clid=${data.clid}`, (res) => {
 					if(res.response.length != 1) return;
-					if(res.response[0].client_nickname.indexOf(data.entry.characterName) != 0) {
+					if(res.response[0].client_nickname.indexOf(data.entry.characterName) !== 0) {
 						console.log(res.response[0].client_nickname, data.entry.characterName);
 						if(data.warning < config.warning.times) {
 							console.log("poke");
@@ -114,7 +116,7 @@
 				});
 
 				console.log("chargroups", chargroups);
-				var toAddGroups 	= chargroups.filter((i) => { return servergroups.filter((j) => { return j.name == i; }).length == 0; });
+				var toAddGroups 	= chargroups.filter((i) => { return servergroups.filter((j) => { return j.name == i; }).length === 0; });
 				var toRemoveGroups 	= servergroups.filter((i) => { return i.name == "Server Admin" ? false : chargroups.indexOf(i.name) < 0; });
 
 				console.log("add", toAddGroups);

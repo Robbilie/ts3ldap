@@ -1,0 +1,10 @@
+{
+	"esversion": 		6,
+	"indent": 			1,
+	"node": 			true,
+	"globals": {
+		"escape":		true,
+		"unescape":		true,
+		"__base": 		true
+	}
+}
