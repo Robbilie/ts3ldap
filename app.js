@@ -102,6 +102,8 @@
 		clientTS.execute(`clientgetdbidfromuid cluid=${new Buffer(notif.client_unique_identifier, "base64").toString("base64")}`, (res) => {
 			clientTS.execute(`servergroupsbyclientid cldbid=${res.response[0].cldbid}`, (res) => {
 				
+				console.log(entry);
+
 				var chargroups 		= typeof entry.groups === "string" ? [entry.groups] : entry.groups;
 				var servergroups 	= res.response;
 
@@ -120,15 +122,15 @@
 				var toRemoveGroups 	= servergroups.filter((i) => { return i.name == "Server Admin" ? false : chargroups.indexOf(i.name) < 0; });
 
 				console.log("add", toAddGroups);
-				toAddGroups.map((i) => { addToGroup(res.response[0].cldbid, i); });
+				toAddGroups.map((i) => { addToGroup(res.response[0].cldbid, i, entry.corporationTicker == i ? "corporation" : (entry.allianceShortName == i ? "alliance" : "normal")); });
 				console.log("rem", toRemoveGroups);
 				toRemoveGroups.map((i) => { removeFromGroup(res.response[0].cldbid, i.name); });
 			});
 		});
 	}
 
-	function addToGroup (cldbid, name) {
-		addOrCreateGroup(name, (sgid) => {
+	function addToGroup (cldbid, name, type) {
+		addOrCreateGroup(name, type, (sgid) => {
 			console.log("sgid", sgid);
 			clientTS.execute(`servergroupaddclient sgid=${sgid} cldbid=${cldbid}`, (res) => {
 				console.log("added", res);
@@ -136,7 +138,7 @@
 		});
 	}
 
-	function addOrCreateGroup (name, cb) {
+	function addOrCreateGroup (name, type, cb) {
 		clientTS.execute(`servergrouplist`, (res) => {
 			console.log(res);
 			var sgid;
@@ -149,8 +151,10 @@
 					clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=b_group_is_permanent permvalue=0 permnegated=0 permskip=0`, (res) => {
 						if(config.sq.useTicker && name.length < 6 && name != "CEO")
 							clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_show_name_in_tree permvalue=1 permnegated=0 permskip=0`, (res) => {
-								console.log("new", sgid, res);
-								cb(sgid);
+								clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_sort_id permvalue=${type == "alliance" ? 10 : (type == "corporation" ? 100 : 1000)} permnegated=0 permskip=0`, (res) => {
+									console.log("new", sgid, res);
+									cb(sgid);
+								});
 							});
 						else
 							cb(sgid);
