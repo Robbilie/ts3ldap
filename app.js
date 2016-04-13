@@ -7,29 +7,72 @@
 
 	var config 		= JSON.parse(fs.readFileSync("config.json"));
 
-	var clientLDAP 	= ldap.createClient({ url: "ldap://service.eneticum.de" });
-	var clientTS 	= new ts.ServerQuery("localhost", 10011);
+	var clientLDAP, clientTS;
 
-	clientTS.on("ready", function () {
-		clientTS.execute(`login ${config.sq.username} ${config.sq.password}`, console.log);
-		
-		clientTS.execute('use 1', function (element) { });
+	var retryTS = () => {
+		try {
 
-		clientTS.execute('servernotifyregister event=server');
+			clientTS 	= new ts.ServerQuery(config.sq.address, config.sq.port);
 
-		setInterval(() => clientTS.execute('serverinfo'), 5 * 60 * 1000);
-	});
-	
-	clientTS.on("notify", function (notification) {
-		if (notification.type == "notifycliententerview") {
-			console.log(notification.body[0].client_nickname + " has connected");
-			processClient(notification.body[0]);
+			clientTS.on("ready", function () {
+				clientTS.execute(`login ${config.sq.username} ${config.sq.password}`, console.log);
+				
+				clientTS.execute('use 1', function (element) { });
+
+				clientTS.execute('servernotifyregister event=server');
+
+				setInterval(() => clientTS.execute('serverinfo'), 5 * 60 * 1000);
+			});
+			
+			clientTS.on("notify", function (notification) {
+				if (notification.type == "notifycliententerview") {
+					console.log(notification.body[0].client_nickname + " has connected");
+					processClient(notification.body[0]);
+				}
+			});
+
+			clientTS.on("error", e => {
+				console.log("error", e);
+				setTimeout(retryTS, 5000);
+			});
+
+			clientTS.on("close", e => {
+				console.log("close", e);
+				if(e === false)
+					setTimeout(retryTS, 5000);
+			});
+
+		} catch (e) {
+			setTimeout(retryTS, 5000);
 		}
-	});
+	};
 
-	clientTS.on("error", console.log);
+	retryTS();
 
-	clientTS.on("close", console.log);
+	var retryLDAP = () => {
+		try {
+
+			clientLDAP 	= ldap.createClient({ url: config.ldap.url });
+
+			clientLDAP.on("error", e => {
+				console.log("error", e);
+				setTimeout(retryLDAP, 5000);
+			});
+
+			clientLDAP.on("close", e => {
+				console.log("close", e);
+				if(e === false)
+					setTimeout(retryLDAP, 5000);
+			});
+
+		} catch (e) {
+			setTimeout(retryLDAP, 5000);
+		}
+	};
+
+	retryLDAP();
+
+	
 
 	function processClient (notif) {
 		console.log("process client", notif);
@@ -55,13 +98,14 @@
 				});
 				res.on("end", (result) => {
 					console.log('status: ' + result.status);
-					if(entries.length === 0) 
+					if(entries.length === 0 && !config.warning.allowNeut) 
 						return warnUser({ type: "kickmsg", entry: entries[0], uid: uid, clid: clid, name: name, msg: "Not registered or not allowed to enter. Register here: https://service.eneticum.de/" });
-					if(entries.length > 1) 
+					if(entries.length > 1 && !config.warning.allowNeut) 
 						return warnUser({ type: "kickmsg", entry: entries[0], uid: uid, clid: clid, name: name, msg: "You can only assign your TS3UID to one character, please remove it from any others." });
-					if(name.indexOf(entries[0].characterName) !== 0) 
+					if(entries[0] && name.indexOf(entries[0].characterName) !== 0 && !config.warning.allowNeut) 
 						return warnUser({ type: "name", notif: notif, entry: entries[0], uid: uid, clid: clid, name: name, warning: 0 });
-					setupUser(notif, entries[0]);
+					if(entries.length == 1 && name.indexOf(entries[0].characterName) === 0)
+						setupUser(notif, entries[0]);
 				});
 			});
 		});
@@ -148,7 +192,7 @@
 			} else {
 				clientTS.execute(`servergroupadd name=${ts.escapeString(name)}`, (res) => {
 					sgid = res.response[0].sgid;
-					clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=b_group_is_permanent permvalue=0 permnegated=0 permskip=0`, (res) => {
+					clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=b_group_is_permanent permvalue=${config.sq.usePermanent ? 1 : 0} permnegated=0 permskip=0`, (res) => {
 						if(config.sq.useTicker && name.length < 6 && name != "CEO")
 							clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_show_name_in_tree permvalue=1 permnegated=0 permskip=0`, (res) => {
 								clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_sort_id permvalue=${type == "alliance" ? 10 : (type == "corporation" ? 100 : 1000)} permnegated=0 permskip=0`, (res) => {

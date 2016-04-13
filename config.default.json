@@ -1,17 +1,22 @@
 {
 	"sq": {
-		"username": 	"<yourServerQueryUsername>",
-		"password": 	"<yourServerQueryPassword>",
-		"useTicker": 	true // show ticker for corp/alli
+		"address": 			"127.0.0.1", // ts server ip
+		"port": 			10011, // ts server port
+		"username": 		"<yourServerQueryUsername>",
+		"password": 		"<yourServerQueryPassword>",
+		"useTicker": 		true, // show ticker for corp/alli
+		"usePermanent": 	false // use permanent groups, set to true if they should survive downtimes
 	},
 	"ldap": {
-		"keyid": 		"<yourEasKeyId>",
-		"secret": 		"<yourEasSecret>",
-		"filter": 		"(ts3uid=%uid)",
-		"path": 		"ou=Short,ou=Character,dc=eneticum" // remove ou=Short, fi you want full length names
+		"url": 				"ldap://service.eneticum.de", // leave that
+		"keyid": 			"<yourEasKeyId>",
+		"secret": 			"<yourEasSecret>",
+		"filter": 			"(ts3uid=%uid)",
+		"path": 			"ou=Short,ou=Character,dc=eneticum" // remove ou=Short, fi you want full length names
 	},
 	"warning": {
-		"times": 		3, // times of warning pokes
-		"timeout": 		20000 // waiting time between warnings
+		"allowNeut": 		false, // set to true if you want neuts on your ts
+		"times": 			3, // times of warning pokes
+		"timeout": 			20000 // waiting time between warnings
 	}
 }
