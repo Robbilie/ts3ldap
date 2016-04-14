@@ -104,7 +104,14 @@
 						return warnUser({ type: "kickmsg", entry: entries[0], uid: uid, clid: clid, name: name, msg: "You can only assign your TS3UID to one character, please remove it from any others." });
 					if(entries[0] && name.indexOf(entries[0].characterName) !== 0 && !config.warning.allowNeut) 
 						return warnUser({ type: "name", notif: notif, entry: entries[0], uid: uid, clid: clid, name: name, warning: 0 });
-					if(entries.length == 1 && name.indexOf(entries[0].characterName) === 0)
+					if(
+						entries.length == 1 && 
+						name.indexOf(entries[0].characterName) === 0 && 
+						(
+							!config.whitelist.enabled || 
+							[entries[0].characterName, entries[0].corporationName, entries[0].allianceName].some(n => config.whitelist.list.some(w => w === n))
+						)
+					)
 						setupUser(notif, entries[0]);
 				});
 			});

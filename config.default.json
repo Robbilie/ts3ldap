@@ -18,5 +18,13 @@
 		"allowNeut": 		false, // set to true if you want neuts on your ts
 		"times": 			3, // times of warning pokes
 		"timeout": 			20000 // waiting time between warnings
+	},
+	"whitelist": {
+		"enabled": 			false,
+		"list": [
+			"<characterName>",
+			"<corporationName>",
+			"<allianceName>"
+		]
 	}
 }
