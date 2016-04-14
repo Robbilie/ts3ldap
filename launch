@@ -1,2 +1,4 @@
 #!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd $DIR
 tmux kill-session -t ts3ldap; tmux new-session -d -s "ts3ldap" "node app.js"; tmux attach -t ts3ldap
