@@ -201,7 +201,7 @@
 				clientTS.execute(`servergroupadd name=${ts.escapeString(name)}`, (res) => {
 					sgid = res.response[0].sgid;
 					clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=b_group_is_permanent permvalue=${config.sq.usePermanent ? 1 : 0} permnegated=0 permskip=0`, (res) => {
-						if(config.sq.useTicker && name.length < 6 && name != "CEO" && name != "FC")
+						if(config.sq.useTicker && name.length < 6 && name != "CEO" && name != "FC" && name.slice(-2) != "%M")
 							clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_show_name_in_tree permvalue=1 permnegated=0 permskip=0`, (res) => {
 								clientTS.execute(`servergroupaddperm sgid=${sgid} permsid=i_group_sort_id permvalue=${type == "alliance" ? 10 : (type == "corporation" ? 100 : 1000)} permnegated=0 permskip=0`, (res) => {
 									console.log("new", sgid, res);
